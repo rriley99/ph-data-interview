@@ -2,10 +2,22 @@ import logging
 import sys
 from datetime import datetime
 import os
+from typing import Optional, Any
 
-def setup_logging(log_level=logging.INFO):
+def setup_logging(log_level: int = logging.INFO) -> logging.Logger:
     """
-    Configure structured logging for the application
+    Configure structured logging for the application.
+
+    This function sets up a logger with both file and console handlers, 
+    creating a log file in the 'logs' directory and configuring logging 
+    to both file and standard output.
+
+    Args:
+        log_level (int, optional): The logging level to set. 
+            Defaults to logging.INFO.
+
+    Returns:
+        logging.Logger: Configured logger for the application.
     """
     # Create a custom formatter
     formatter = logging.Formatter(

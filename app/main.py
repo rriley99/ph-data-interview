@@ -1,26 +1,41 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any, Union
 import pandas as pd
 import traceback
+import logging
 
 from .data.preprocessor import DataPreprocessor
 from .model.predictor import ModelPredictor
 from .logger import setup_logging
 
 # Setup logging
-logger = setup_logging()
+logger: logging.Logger = setup_logging()
 
 # Initialize preprocessor and predictor
 try:
-    preprocessor = DataPreprocessor()
-    predictor = ModelPredictor()
+    preprocessor: DataPreprocessor = DataPreprocessor()
+    predictor: ModelPredictor = ModelPredictor()
 except Exception as e:
     logger.error(f"Initialization error: {e}")
     logger.error(traceback.format_exc())
     raise
 
 class HouseInputLite(BaseModel):
+    """
+    Lightweight model for house price prediction with minimal features.
+    
+    Attributes:
+        price (Optional[float]): Optional price of the house.
+        bedrooms (float): Number of bedrooms.
+        bathrooms (float): Number of bathrooms.
+        sqft_living (float): Square footage of living area.
+        sqft_lot (float): Square footage of the lot.
+        floors (float): Number of floors.
+        sqft_above (float): Square footage above ground.
+        sqft_basement (float): Square footage of basement.
+        zipcode (float): Zipcode of the property.
+    """
     price: Optional[float] = None
     bedrooms: float
     bathrooms: float
@@ -33,6 +48,31 @@ class HouseInputLite(BaseModel):
 
 # Pydantic model for full input validation
 class HouseInput(BaseModel):
+    """
+    Comprehensive model for house price prediction with full feature set.
+    
+    Attributes:
+        date (Optional[str]): Optional date of listing.
+        price (Optional[float]): Optional price of the house.
+        bedrooms (float): Number of bedrooms.
+        bathrooms (float): Number of bathrooms.
+        sqft_living (float): Square footage of living area.
+        sqft_lot (float): Square footage of the lot.
+        floors (float): Number of floors.
+        waterfront (int): Waterfront property indicator.
+        view (int): View rating.
+        condition (int): Property condition rating.
+        grade (int): Construction and design quality rating.
+        sqft_above (float): Square footage above ground.
+        sqft_basement (float): Square footage of basement.
+        yr_built (int): Year the house was built.
+        yr_renovated (int): Year of last renovation.
+        zipcode (int): Zipcode of the property.
+        lat (float): Latitude coordinate.
+        long (float): Longitude coordinate.
+        sqft_living15 (float): Living room area in 2015.
+        sqft_lot15 (float): Lot area in 2015.
+    """
     date: Optional[str] = None
     price: Optional[float] = None
     bedrooms: float
@@ -61,7 +101,19 @@ app = FastAPI(
 )
 
 @app.post("/predict")
-async def predict_house_price(house: HouseInput):
+async def predict_house_price(house: HouseInput) -> Dict[str, Union[float, Dict[str, Any], Dict[str, float]]]:
+    """
+    Predict house price using full feature set.
+
+    Args:
+        house (HouseInput): Comprehensive house details for prediction.
+
+    Returns:
+        Dict containing prediction, metadata, and input features.
+
+    Raises:
+        HTTPException: For preprocessing or prediction errors.
+    """
     try:
         # Remove optional fields if present
         input_dict = house.model_dump()
@@ -113,7 +165,19 @@ async def predict_house_price(house: HouseInput):
 
 # Lite endpoint with minimal features
 @app.post("/predict_lite")
-async def predict_house_price_lite(house: HouseInputLite):
+async def predict_house_price_lite(house: HouseInputLite) -> Dict[str, Union[float, Dict[str, Any], Dict[str, float]]]:
+    """
+    Predict house price using a minimal set of features.
+
+    Args:
+        house (HouseInputLite): Minimal house details for prediction.
+
+    Returns:
+        Dict containing prediction, metadata, and input features.
+
+    Raises:
+        HTTPException: For preprocessing or prediction errors.
+    """
     try:
         # Remove optional fields if present
         input_dict = house.dict()
