@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+gunicorn
+pandas
+scikit-learn
+joblib
+pydantic
+python-dateutil
+uvloop
+httptools
